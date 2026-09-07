@@ -86,10 +86,14 @@
 
 ### §A4 플로팅 버블 (I-M2) — 기준 사이트 4곳 각각
 
-**중간 결과 2026-09-07 (naver.com, macOS Chrome, MOCK 데이터):** 버블·배지(2)·패널 정상 표시,
-레이아웃 변화 없음, 배너에 프로바이더 이름 표시됨. 배지 값이 패널 안읽음 수와 일치 →
-`storage.session` 접근 레벨(`setAccessLevel`) 경로 확인됨. 나머지 3개 사이트와 툴바 아이콘·
-서비스워커 재시작(§A7)은 미기록.
+**중간 결과 2026-09-07 (macOS Chrome, MOCK 데이터):** 기준 사이트 4곳(naver.com, google.com,
+github.com, youtube.com) 모두 버블·패널 정상 표시, 레이아웃 변화 없음. google.com에서 정상이므로
+Trusted Types 강제 사이트에서의 Shadow DOM·`adoptedStyleSheets` 격리가 실제로 동작한다.
+naver.com에서 배지(2)가 패널 안읽음 수와 일치 → `storage.session` 접근 레벨(`setAccessLevel`)
+경로 확인됨.
+
+아직 기록하지 않은 것: 각 사이트 콘솔 오류 0건 확인, Esc·닫기 버튼, 페이지 안 iframe에 버블 없음,
+툴바 아이콘 토글과 팝업 폴백, 미개봉 탭 메모리 ≤ 5MB, 서비스워커 재시작(§A7).
 
 - [ ] 우하단 버블 표시, 레이아웃 변화 없음, 콘솔 오류 0(Trusted Types 경고 포함)
 - [ ] 배지가 `unread`와 일치, 0이면 숨김
