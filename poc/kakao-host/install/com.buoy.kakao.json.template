@@ -1,7 +1,0 @@
-{
-  "name": "com.buoy.kakao",
-  "description": "Buoy KakaoTalk native messaging host (PoC)",
-  "path": "__HOST_BAT_PATH__",
-  "type": "stdio",
-  "allowed_origins": ["chrome-extension://__EXTENSION_ID__/"]
-}

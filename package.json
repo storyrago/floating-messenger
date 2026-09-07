@@ -2,13 +2,12 @@
   "name": "floating-messenger",
   "version": "0.1.0",
   "private": true,
-  "description": "인스타그램 DM과 카카오톡을 어떤 사이트에서든 플로팅 버블로 여는 Chrome 확장 (MV3, 텍스트 전용, 개인 사용)",
+  "description": "인스타그램 DM을 데스크탑 앱으로 읽고 답장하는 도구 (텍스트 전용)",
   "scripts": {
     "start": "electron .",
     "test": "node --test 'poc/extension-provider/tests/*.test.js'",
-    "test:host": "cd poc/kakao-host && python3 -m pytest -q tests",
-    "check": "for f in $(git ls-files '*.js' ':!:node_modules/*'); do node --check \"$f\" || exit 1; done && python3 -m compileall -q poc/kakao-host",
-    "verify": "npm run test && npm run test:host && npm run check"
+    "check": "for f in $(git ls-files '*.js' ':!:node_modules/*'); do node --check \"$f\" || exit 1; done",
+    "verify": "npm run test && npm run check"
   },
   "devDependencies": {
     "electron": "^44.2.0"

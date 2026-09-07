@@ -26,7 +26,6 @@ const MOCK = (() => {
   const min = 60 * 1000;
   const providers = {
     instagram: { status: 'connecting', detail: null, caps: { send: true, seen: true, history: true, rooms: true }, enabled: true },
-    kakao: { status: 'disconnected', detail: '호스트 연결은 다음 단계', caps: { send: false, seen: false, history: false, rooms: false }, enabled: true },
   };
   const threads = [
     {
@@ -37,15 +36,6 @@ const MOCK = (() => {
         { id: 'i1', provider: 'instagram', userId: '1', fromMe: true, type: 'text', text: '내일 발표 자료 다 됐어?', ts: now - 90 * min },
         { id: 'i2', provider: 'instagram', userId: '2001', fromMe: false, type: 'text', text: '거의. 마지막 장만 남았어', ts: now - 88 * min },
         { id: 'i3', provider: 'instagram', userId: '2001', fromMe: false, type: 'media', text: '[사진]', ts: now - 3 * min },
-      ],
-    },
-    {
-      id: 'kakao:스터디', rawId: '스터디', provider: 'kakao', title: '스터디',
-      users: [{ id: '박지호', username: '박지호', name: '박지호' }, { id: '이레', username: '이레', name: '이레' }],
-      isGroup: true, unread: true, lastActivity: now - 26 * min,
-      items: [
-        { id: 'k1', provider: 'kakao', userId: '박지호', fromMe: false, type: 'text', text: '오늘 8시 그대로죠?', ts: now - 28 * min, source: 'toast' },
-        { id: 'k2', provider: 'kakao', userId: '이레', fromMe: false, type: 'text', text: '네 링크 곧 올릴게요', ts: now - 26 * min, source: 'toast' },
       ],
     },
   ];

@@ -27,7 +27,7 @@
   let reqId = 0;
   const pending = new Map();
 
-  const LABEL = { instagram: { short: 'IG', name: '인스타' }, kakao: { short: 'KT', name: '카톡' } };
+  const LABEL = { instagram: { short: 'IG', name: '인스타' } };
   const STATUS_TEXT = {
     connecting: '연결 중…',
     connected: '연결됨',
@@ -163,9 +163,9 @@
       if (p.status === 'logged_out') {
         el.banners.appendChild(banner('로그인이 풀렸어요. 인스타그램 탭에서 로그인하면 자동으로 이어져요.', '인스타그램 열기', () => post({ type: 'OPEN_INSTAGRAM' })));
       } else if (p.status === 'disconnected') {
-        el.banners.appendChild(id === 'kakao'
-          ? banner('카카오 호스트가 응답하지 않아요. PC 카카오톡과 호스트 설치를 확인하세요.', '설치 안내', () => post({ type: 'OPEN_HELP', provider: 'kakao' }))
-          : banner('인스타그램 탭이 닫혔어요. 다시 여는 중…'));
+        el.banners.appendChild(banner('인스타그램에 연결하지 못했어요. 다시 시도하는 중…'));
+      } else if (p.status === 'rate_limited') {
+        el.banners.appendChild(banner(p.detail || '인스타그램이 요청을 잠시 막았어요. 자동으로 다시 시도해요.'));
       } else if (p.status === 'degraded' && p.detail) {
         el.banners.appendChild(banner(name(id) + ' 일부 기능이 제한돼요 — ' + p.detail));
       }

@@ -9,7 +9,6 @@
   --warn: #E8A33D;
   --bad: #E5484D;
   --ig: #5B4FE6;
-  --kakao: #B8860B;
   --font: Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --bar: 52px;
 }
@@ -175,7 +174,6 @@ body {
 }
 
 .tag.instagram { color: var(--ig); }
-.tag.kakao { color: var(--kakao); }
 
 .name {
   grid-row: 1;
