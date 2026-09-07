@@ -311,11 +311,11 @@ widget.js는 `event.origin === new URL(chrome.runtime.getURL('')).origin`일 때
 
 모든 요청은 ig-bridge.js에서 `fetch(location.origin + path, { credentials:'include', headers })`. 아래는 웹 클라이언트가 써 온 형태로 알려진 값이며, **"미확인"이면 코드에 쓰기 전에 DevTools에서 확인한다.**
 
-공통 헤더: `x-ig-app-id: 936619743392459`(2026-09-07 게이트웨이 소켓의 `x-dgw-appid`와 일치. inbox 요청 헤더로 최종 대조 필요), `x-csrftoken: <cookie csrftoken>`, `x-requested-with: XMLHttpRequest`, `x-instagram-ajax: 1`(선택), `x-asbd-id`(요구되면).
+공통 헤더: `x-ig-app-id: 936619743392459`(**확정 2026-09-07** — 이 값으로 inbox 200. 게이트웨이 소켓의 `x-dgw-appid`와도 일치), `x-csrftoken: <cookie csrftoken>`, `x-csrftoken: <cookie csrftoken>`, `x-requested-with: XMLHttpRequest`, `x-instagram-ajax: 1`(선택), `x-asbd-id`(요구되면).
 
 | 용도 | 메서드 · 경로 (알려진 형태) | 요청 본문 | 응답에서 쓰는 필드 | 검증 상태 |
 |---|---|---|---|---|
-| 목록 | `GET /api/v1/direct_v2/inbox/?persistentBadging=true&folder=&limit=20&thread_message_limit=10` | — | `inbox.threads[]`, `viewer.pk`, `viewer.username` | 미확인 |
+| 목록 | `GET /api/v1/direct_v2/inbox/?persistentBadging=true&folder=&limit=20&thread_message_limit=10` | — | `inbox.threads[]`, `viewer.pk`, `viewer.username` | **확인 2026-09-07** — 200 `application/json`. 세션 쿠키 + `x-ig-app-id: 936619743392459` + `x-requested-with` 만으로 성공. 헤더 없이 보내면 400 |
 | 대화 | `GET /api/v1/direct_v2/threads/{thread_id}/?limit=30` | — | `thread.items[]`, `thread.viewer_id`, `thread.oldest_cursor`, `thread.has_older` | 미확인 |
 | 텍스트 전송 | `POST /api/v1/direct_v2/threads/broadcast/text/` | form: `action=send_item`, `client_context`, `mutation_token`, `offline_threading_id`, `thread_ids=["<id>"]`, `text`, `is_shh_mode=0`, `send_attribution=direct_thread` | `status`, `payload.item_id`, `payload.timestamp`, `payload.client_context` | 미확인 — MQTT 전용이면 C5 |
 | 읽음 | `POST /api/v1/direct_v2/threads/{thread_id}/items/{item_id}/seen/` | form: `thread_id`, `item_id`, `action=mark_seen`, `client_context` | `status` | 미확인 |
@@ -335,6 +335,11 @@ widget.js는 `event.origin === new URL(chrome.runtime.getURL('')).origin`일 때
 | `viewer.pk` / `thread.viewer_id` | `Inbox.viewer.id` / `fromMe` 판정 | |
 
 응답 오류 판정(`igFetch`): `res.redirected && /\/accounts\/login/.test(res.url)` 또는 401/403 또는 JSON 아님 → `logged_out`; 429 → `rate_limited`; 그 외 !ok → `http_<status>`.
+
+**웹앱과 우리의 경로가 다르다(2026-09-07 관찰).** 현재 instagram.com 웹앱은 DM 읽기를 `graphql`
+요청으로, 전송을 웹소켓으로 한다. 개발자 도구 본문 검색에서 보낸 문자열이 어떤 HTTP 요청에도
+잡히지 않았다. 그래도 위 `/api/v1/direct_v2/` 경로는 살아 있어서 우리가 직접 부르면 동작한다.
+즉 읽기는 이 표대로 가고, **전송만 별도 검증이 필요하다**(§A1.5).
 
 ### 9.2 카카오톡 PC (Windows, PoC E1a·E2로 검증 후 갱신)
 
