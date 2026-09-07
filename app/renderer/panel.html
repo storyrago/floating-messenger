@@ -3,28 +3,46 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>메신저</title>
+  <title>메시지</title>
   <link rel="stylesheet" href="panel.css">
 </head>
 <body>
-  <header class="bar">
-    <button id="back" class="icon" type="button" aria-label="목록으로" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <h1 id="title" class="title">메시지</h1>
-    <span id="dots" class="dots"></span>
-    <button id="refresh" class="icon" type="button" aria-label="새로고침">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-  </header>
+  <div class="app">
+    <!-- 왼쪽: 대화 목록 -->
+    <aside class="side">
+      <header class="side-head">
+        <h1 class="side-title">메시지</h1>
+        <span id="dots" class="dots" aria-label="연결 상태"></span>
+        <button id="refresh" class="icon" type="button" aria-label="새로고침">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </header>
+      <div id="banners" class="banners"></div>
+      <div id="list" class="list" role="list" tabindex="-1"></div>
+    </aside>
 
-  <div id="banners" class="banners"></div>
+    <!-- 오른쪽: 대화 -->
+    <main class="chat">
+      <header id="chatHead" class="chat-head" hidden>
+        <div id="chatAvatar" class="avatar lg"></div>
+        <div class="chat-who">
+          <h2 id="chatName" class="chat-name"></h2>
+          <p id="chatSub" class="chat-sub"></p>
+        </div>
+      </header>
 
-  <nav id="chips" class="chips" aria-label="메신저 필터" hidden></nav>
+      <div id="convo" class="convo" tabindex="-1"></div>
 
-  <main id="list" class="list" tabindex="-1"></main>
+      <div id="blank" class="blank">
+        <p>왼쪽에서 대화를 고르세요.</p>
+      </div>
 
-  <main id="convo" class="convo" tabindex="-1" hidden></main>
+      <footer id="composer" class="composer" hidden>
+        <input id="draft" class="draft" type="text" disabled
+               placeholder="메시지 보내기는 아직 준비 중이에요" aria-label="메시지 입력">
+      </footer>
+    </main>
+  </div>
 
   <script src="panel.js"></script>
 </body>

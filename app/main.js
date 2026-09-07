@@ -24,20 +24,55 @@ let uiReady = false;
 const MOCK = (() => {
   const now = Date.now();
   const min = 60 * 1000;
+  let seq = 0;
+  const mk = (id, title, username, agoMin, lines, unread, groupNames) => {
+    const users = groupNames
+      ? groupNames.map((n) => ({ id: n, username: n, name: n }))
+      : [{ id: 'u' + id, username: username || title, name: title }];
+    const items = lines.map(([fromMe, text, ago]) => ({
+      id: 'i' + (++seq), provider: 'instagram',
+      userId: fromMe ? 'me' : users[seq % users.length].id,
+      fromMe, type: 'text', text, ts: now - ago * min,
+    }));
+    return {
+      id: 'instagram:' + id, rawId: id, provider: 'instagram', title,
+      users, isGroup: !!groupNames, unread, lastActivity: now - agoMin * min, items,
+    };
+  };
   const providers = {
     instagram: { status: 'connecting', detail: null, caps: { send: true, seen: true, history: true, rooms: true }, enabled: true },
   };
   const threads = [
-    {
-      id: 'instagram:t1', rawId: 't1', provider: 'instagram', title: '김서연',
-      users: [{ id: '2001', username: 'seoyeon', name: '김서연' }], isGroup: false, unread: true,
-      lastActivity: now - 2 * min,
-      items: [
-        { id: 'i1', provider: 'instagram', userId: '1', fromMe: true, type: 'text', text: '내일 발표 자료 다 됐어?', ts: now - 90 * min },
-        { id: 'i2', provider: 'instagram', userId: '2001', fromMe: false, type: 'text', text: '거의. 마지막 장만 남았어', ts: now - 88 * min },
-        { id: 'i3', provider: 'instagram', userId: '2001', fromMe: false, type: 'media', text: '[사진]', ts: now - 3 * min },
-      ],
-    },
+    mk('t1', '김서연', 'seoyeon', 2, [
+      [true, '내일 발표 자료 다 됐어?', 90],
+      [false, '거의. 마지막 장만 남았어', 88],
+      [false, '[사진]', 3],
+      [false, '이렇게 정리했는데 어때', 2],
+    ], true),
+    mk('t2', '박준혁', 'junhyuk', 41, [
+      [false, '형 그거 봤어요?', 44],
+      [true, '뭐', 43],
+      [false, '어제 올린 거요 ㅋㅋㅋ', 41],
+    ], true),
+    mk('t3', '동아리 총무', 'club_kr', 300, [
+      [false, '회비 입금 확인했습니다', 300],
+      [true, '감사합니다', 299],
+    ], false),
+    mk('t4', '이하늘', 'haneul.lee', 1500, [
+      [false, '주말에 시간 돼?', 1502],
+      [true, '토요일은 괜찮아', 1500],
+    ], false),
+    mk('t5', '최민서', 'minseo_c', 2900, [
+      [true, '오늘 고마웠어', 2900],
+    ], false),
+    mk('t6', '스터디 모임', null, 4300, [
+      [false, '다음 주 발표 순서 정할게요', 4310],
+      [false, '저 두 번째 할게요', 4305],
+      [true, '저는 마지막으로', 4300],
+    ], false, ['정우진', '한서영']),
+    mk('t7', '윤도현', 'dohyun.y', 8800, [
+      [false, '링크 보냈어', 8800],
+    ], false),
   ];
   for (const t of threads) t.last = t.items[t.items.length - 1];
   return { providers, threads };
@@ -69,14 +104,25 @@ function setStatus(provider, status, detail) {
 
 // ── 창 ───────────────────────────────────────────────────────────────────────
 function createUI() {
+  const mac = process.platform === 'darwin';
   ui = new BrowserWindow({
-    width: 400,
-    height: 700,
-    minWidth: 360,
-    minHeight: 480,
+    width: 940,
+    height: 640,
+    minWidth: 720,
+    minHeight: 460,
     title: 'Floating Messenger',
     icon: path.join(__dirname, '..', 'icons', '128.png'),
-    backgroundColor: '#FFFFFF',
+
+    // 창틀과 화면의 경계를 없앤다. 신호등(맥)·캡션 버튼(윈도우)이 화면 위에 얹힌다.
+    titleBarStyle: 'hidden',
+    ...(mac ? { trafficLightPosition: { x: 18, y: 18 } } : {}),
+    ...(mac
+      // 맥: 창 뒤 배경이 비치는 유리 재질. 색을 칠하지 않아야 비친다.
+      ? { vibrancy: 'sidebar', visualEffectState: 'active', backgroundColor: '#00000000' }
+      // 윈도우 11: 같은 역할을 하는 재질. 지원하지 않는 버전에서는 무시되고 아래 색이 쓰인다.
+      : { backgroundMaterial: 'acrylic', backgroundColor: '#17161C',
+          titleBarOverlay: { color: '#00000000', symbolColor: '#ECECF1', height: 44 } }),
+
     webPreferences: {
       preload: path.join(__dirname, 'preload-ui.js'),
       contextIsolation: true,
