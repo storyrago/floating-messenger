@@ -275,7 +275,7 @@
     }
 
     renderList();
-    renderConvo();
+    renderConvo(true);
     el.convo.focus({ preventScroll: true });
 
     if (t && ((state.providers[t.provider] || {}).caps || {}).history) {
@@ -291,7 +291,12 @@
     renderConvo();
   }
 
-  function renderConvo() {
+  /**
+   * @param {boolean} toBottom 무조건 맨 아래로 내린다. 다른 대화를 열 때 쓴다.
+   *   이걸 안 주면 직전 대화에서 위로 올려 둔 스크롤 위치를 기준으로 판단해,
+   *   새로 연 대화가 중간에서 시작한다.
+   */
+  function renderConvo(toBottom) {
     const t = state.threads.find((x) => x.id === openThreadId);
     if (!t) {
       el.chatHead.hidden = true;
@@ -313,7 +318,7 @@
     const names = (t.users || []).map((u) => u.username).filter(Boolean);
     el.chatSub.textContent = t.isGroup ? `${names.length + 1}명` : (names[0] ? '@' + names[0] : '');
 
-    const atBottom = el.convo.scrollHeight - el.convo.scrollTop - el.convo.clientHeight < 60;
+    const atBottom = toBottom || el.convo.scrollHeight - el.convo.scrollTop - el.convo.clientHeight < 60;
     clear(el.convo);
 
     if (caps.history === false) {
