@@ -13,12 +13,59 @@
 ## §A 인스타 트랙
 
 ### §A1 I-M0 조사 결과
-- [ ] 실시간 소켓 URL 기록, initiator가 문서인지 Worker인지 기록
-- [ ] inbox 요청 경로·쿼리·헤더 기록, `tests/fixtures/inbox.json` 저장(이름·본문·URL 가짜 값)
-- [ ] thread 요청 기록, `tests/fixtures/thread.json` 저장
-- [ ] 전송 요청 형태 기록(HTTP POST 여부, 본문 파라미터)
-- [ ] seen 요청 형태 기록
-- [ ] `docs/02` §9.1 표 갱신, "미확인" 0개
+
+코드를 쓰지 않는 단계다. DevTools로 `docs/02` §9.1의 "미확인" 5줄과 `docs/03` §10 인스타 미결 6개를 답한다.
+**테스트·부계정 권장**(docs/01 C2). 답이 안 나온 칸은 비워 두고 §A1.8에 적는다. 추측해서 채우지 않는다.
+
+준비
+- [ ] 부계정으로 instagram.com 로그인, 폰 등 다른 기기에서 그 계정에 메시지를 보낼 수 있는 상태
+- [ ] `https://www.instagram.com/direct/inbox/` 열기 → DevTools(F12) → Network → **Preserve log 켜기**
+
+#### §A1.1 실시간 소켓 (C4, FR-12)
+- [ ] Network 필터 **WS** → 페이지 새로고침 → 소켓 URL 기록. `docs/02` §9.1은 `wss://edge-chat.instagram.com/chat` 형태를 예상한다
+- [ ] 그 요청의 **Initiator** 열 기록. 문서 스크립트인가, Worker 스크립트인가
+- [ ] Sources → **Threads**(또는 `chrome://inspect/#workers`)에 워커가 있는지, 있다면 소켓이 그쪽에서 열렸는지
+- [ ] 소켓을 선택 → Messages 탭 → 다른 기기에서 메시지 전송 → 프레임이 늘어나는지 확인(내용은 볼 필요 없다)
+- [ ] instagram.com 홈(`/`)에서도 같은 소켓이 열리는지 (`docs/03` §10 마지막 항목, FR-11 엔진 탭 URL 선택에 영향)
+- [ ] **판정:** 문서에서 열림 → `hook.js` 그대로 진행, `reference/hook.js`의 `/edge-chat|mqtt/i` 정규식을 실제 URL에 맞춘다. Worker에서 열림 → **C4 발동**, 폴백 폴링(15초) 중심으로 `docs/03` I-M1 수정하고 ADR 작성
+
+#### §A1.2 inbox 요청
+- [ ] Network 필터 **Fetch/XHR** → 새로고침 → `direct_v2/inbox` 요청 선택
+- [ ] Headers 탭에서 경로·쿼리스트링 전체 기록(`persistentBadging`, `folder`, `limit`, `thread_message_limit`)
+- [ ] 요청 헤더에서 `x-ig-app-id` **실제 값**, `x-asbd-id` 유무, `x-csrftoken`, `x-requested-with`, `x-instagram-ajax` 기록
+- [ ] Response → 우클릭 Copy response → `tests/fixtures/inbox.json` 저장
+- [ ] **저장 전 치환:** 사람 이름·username·본문·프로필 이미지 URL·pk를 가짜 값으로. 스레드 2~3개면 충분하다
+
+#### §A1.3 thread 요청
+- [ ] 스레드 하나 클릭 → `direct_v2/threads/<id>/` 요청의 경로·쿼리(`limit`) 기록
+- [ ] Response → `tests/fixtures/thread.json` 저장(같은 방식으로 치환). 사진·좋아요 등 **텍스트가 아닌 항목이 섞인 스레드**를 고르면 FR-07 플레이스홀더 테스트에 그대로 쓸 수 있다
+
+#### §A1.4 응답 필드 확인 (`lib/normalize.js` 매핑, `docs/02` §9.1 표)
+- [ ] `items[].timestamp` 자릿수 → 마이크로초 가정이 맞는지 (16자리면 µs, 13자리면 ms)
+- [ ] `thread.last_activity_at` 단위도 같은지
+- [ ] `thread.read_state` 값과 의미(안읽음 스레드와 읽은 스레드를 비교해 관찰). 구분되지 않으면 `last_seen_at` 폴백을 쓴다
+- [ ] `viewer.pk` 위치, `thread.viewer_id` 유무(`fromMe` 판정 근거)
+- [ ] `thread_title`이 비는 경우가 있는지(비면 username 나열로 대체)
+
+#### §A1.5 텍스트 전송 (C5 — 가장 큰 갈림길)
+- [ ] Fetch/XHR 필터를 켠 채 대화창에서 텍스트 한 줄 전송
+- [ ] POST가 잡히면: 경로와 **Payload 파라미터 전부** 기록(`action`, `client_context`, `mutation_token`, `offline_threading_id`, `thread_ids`, `text`, `send_attribution` 등), 응답에서 `payload.item_id`·`timestamp`·`client_context` 확인
+- [ ] `client_context` 실제 형식 기록(19자리 숫자 가정)
+- [ ] **POST가 없고 WS 프레임만 늘어나면 C5 발동.** `docs/03` §9 대응대로 엔진 탭 입력창 조작 대안 ADR을 쓰거나 v2(프로토콜 파싱)를 앞당긴다. I-M3 설계가 통째로 바뀌므로 여기서 멈추고 결정한다
+
+#### §A1.6 읽음 처리 (FR-14)
+- [ ] 안읽음 스레드를 열고 `seen` 요청이 잡히는지 → 경로·본문 파라미터 기록
+- [ ] 없으면 FR-14를 보류로 내리고 `docs/01` FR-14 우선순위를 조정한다
+
+#### §A1.7 요청 빈도 관찰 (NFR-01 기준선)
+- [ ] 대화 중 인스타 웹 자신이 `inbox`를 얼마나 자주 부르는지 관찰. 우리 재조회 상한(초 2회, 분 평균 10회)이 웹 클라이언트보다 잦지 않은지 비교 근거로 남긴다
+
+#### §A1.8 정리
+- [ ] `docs/02` §9.1 표의 "검증 상태"를 확인됨/대안 결정으로 갱신, **"미확인" 0개**
+- [ ] `docs/03` §10 인스타 미결 6개에 답 기록, C4·C5 발동 여부 명시
+- [ ] `tests/fixtures/inbox.json`·`thread.json` 2개 존재, **민감정보 없음**(이름·본문·URL·pk 전부 가짜)
+- [ ] `reference/hook.js` 소켓 정규식을 실제 URL에 맞춰 수정
+- [ ] `docs/01`을 0.4로 올리고 커밋. 커밋 본문에 C4·C5 판정 기록
 
 ### §A2 설치·인증·엔진 탭 (I-M1)
 - [ ] 새 Chrome 프로필에서 확장 로드 → 핀 고정·비활성 인스타 탭이 자동 생성됨
