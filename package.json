@@ -5,9 +5,10 @@
   "description": "인스타그램 DM을 데스크탑 앱으로 읽고 답장하는 도구 (텍스트 전용)",
   "scripts": {
     "start": "electron .",
-    "test": "node --test 'poc/extension-provider/tests/*.test.js'",
+    "test": "node --test 'poc/extension-provider/tests/*.test.js' 'tests/*.test.js'",
     "check": "for f in $(git ls-files '*.js' ':!:node_modules/*'); do node --check \"$f\" || exit 1; done",
-    "verify": "npm run test && npm run check"
+    "verify": "npm run test && npm run check",
+    "send-test": "BUOY_SEND_TEST=1 electron ."
   },
   "devDependencies": {
     "electron": "^44.2.0"

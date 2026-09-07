@@ -151,6 +151,29 @@ async function igFetch(pathname) {
   return engine.webContents.executeJavaScript(code, true);
 }
 
+/** 엔진 웹뷰 안에서 POST. 위조 방지 토큰은 페이지 쿠키에서 읽는다(HttpOnly가 아니다). */
+async function igPost(pathname, form) {
+  if (!engine || engine.isDestroyed()) throw new Error('engine_unavailable');
+  const code = `(async () => {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    if (!m) return { status: 0, type: '', body: null, error: 'csrftoken 쿠키가 없습니다 (로그인 상태인지 확인)' };
+    const r = await fetch(${JSON.stringify(pathname)}, {
+      method: 'POST',
+      headers: {
+        'x-ig-app-id': ${JSON.stringify(IG_APP_ID)},
+        'x-csrftoken': m[1],
+        'x-requested-with': 'XMLHttpRequest',
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(${JSON.stringify(form)}),
+      credentials: 'include',
+    });
+    const type = r.headers.get('content-type') || '';
+    return { status: r.status, type, body: type.includes('json') ? await r.json().catch(() => null) : null };
+  })()`;
+  return engine.webContents.executeJavaScript(code, true);
+}
+
 /**
  * 응답의 "모양"만 본다. 이름·본문은 절대 찍지 않는다.
  * 이 출력으로 lib/normalize.js를 쓰고 나면 이 함수는 지운다. docs/03 §1
@@ -180,9 +203,24 @@ async function probeInbox() {
     });
     setStatus('instagram', 'connected');
     hideLogin();
+    maybeRunSendTest();
   } catch (e) {
     setStatus('instagram', 'error', String(e && e.message));
   }
+}
+
+// ── 검증 모드 (npm run send-test 로만 켜진다. docs/04 §A1.5) ──
+let sendTestStarted = false;
+function maybeRunSendTest() {
+  if (process.env.BUOY_SEND_TEST !== '1' || sendTestStarted) return;
+  sendTestStarted = true;
+  const { runSendTest } = require('./send-test.js');
+  runSendTest({
+    get: igFetch,
+    post: igPost,
+    log: (...a) => console.log('[buoy][test]', ...a),
+    threadId: process.env.BUOY_SEND_TEST_THREAD,
+  }).catch((e) => console.log('[buoy][test] 예외:', e && e.message));
 }
 
 // ── 로그인 창 ────────────────────────────────────────────────────────────────
