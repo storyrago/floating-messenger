@@ -40,7 +40,7 @@ lib/providers.js        프로바이더 네임스페이스·병합·게이팅   
 lib/native-port.js      네이티브 호스트 링크                 ← 〃
 host/                   카카오 호스트                        ← poc/kakao-host 에서 M5에 승격
 tests/                  node·pytest 테스트 + fixtures
-icons/                  확장 아이콘 16·48·128 (I-M1에서 추가, ADR-009)
+icons/                  확장 아이콘 16·48·128 (ADR-009)
 package.json .editorconfig  개발 편의(의존성 0) — ADR-009
 poc/kakao-host/         호스트 PoC: buoy_kakao_host/(framing·protocol·host·adapters), experiments/, install/, tests/
 poc/extension-provider/ 확장 측 공용 로직 PoC + tests
