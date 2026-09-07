@@ -311,7 +311,7 @@ widget.js는 `event.origin === new URL(chrome.runtime.getURL('')).origin`일 때
 
 모든 요청은 ig-bridge.js에서 `fetch(location.origin + path, { credentials:'include', headers })`. 아래는 웹 클라이언트가 써 온 형태로 알려진 값이며, **"미확인"이면 코드에 쓰기 전에 DevTools에서 확인한다.**
 
-공통 헤더: `x-ig-app-id: 936619743392459`(현재 값 확인), `x-csrftoken: <cookie csrftoken>`, `x-requested-with: XMLHttpRequest`, `x-instagram-ajax: 1`(선택), `x-asbd-id`(요구되면).
+공통 헤더: `x-ig-app-id: 936619743392459`(2026-09-07 게이트웨이 소켓의 `x-dgw-appid`와 일치. inbox 요청 헤더로 최종 대조 필요), `x-csrftoken: <cookie csrftoken>`, `x-requested-with: XMLHttpRequest`, `x-instagram-ajax: 1`(선택), `x-asbd-id`(요구되면).
 
 | 용도 | 메서드 · 경로 (알려진 형태) | 요청 본문 | 응답에서 쓰는 필드 | 검증 상태 |
 |---|---|---|---|---|
@@ -319,7 +319,7 @@ widget.js는 `event.origin === new URL(chrome.runtime.getURL('')).origin`일 때
 | 대화 | `GET /api/v1/direct_v2/threads/{thread_id}/?limit=30` | — | `thread.items[]`, `thread.viewer_id`, `thread.oldest_cursor`, `thread.has_older` | 미확인 |
 | 텍스트 전송 | `POST /api/v1/direct_v2/threads/broadcast/text/` | form: `action=send_item`, `client_context`, `mutation_token`, `offline_threading_id`, `thread_ids=["<id>"]`, `text`, `is_shh_mode=0`, `send_attribution=direct_thread` | `status`, `payload.item_id`, `payload.timestamp`, `payload.client_context` | 미확인 — MQTT 전용이면 C5 |
 | 읽음 | `POST /api/v1/direct_v2/threads/{thread_id}/items/{item_id}/seen/` | form: `thread_id`, `item_id`, `action=mark_seen`, `client_context` | `status` | 미확인 |
-| 실시간 | `wss://edge-chat.instagram.com/chat` (MQTT over WebSocket) | — | hook.js가 존재만 감지 | 미확인 — Worker면 C4 |
+| 실시간 | `wss://edge-chat.instagram.com/chat?sid=&cid=` (MQTT) + `wss://gateway.instagram.com/ws/{rpsignaling,lightspeed,realtime,streamcontroller}?x-dgw-*` | — | hook.js가 존재만 감지 | **확인 2026-09-07** — 소켓 5개, 모두 문서 스크립트가 여는 것으로 관찰(C4 회피). DM이 오는 소켓은 확인 중 |
 
 `client_context`: 19자리 숫자 문자열, `String(Date.now()) + 6자리 난수`.
 
