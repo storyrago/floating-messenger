@@ -25,5 +25,6 @@
 ## 시작하기
 
 1. `CLAUDE.md`를 읽는다.
-2. 카카오 실기 실험: `docs/04-verification.md` §B1 순서로 Windows에서 E0~E4를 수행하고 §B3 결과표를 채운다.
-3. 인스타: `docs/03-development-plan.md` I-M0부터.
+2. `npm run verify`로 현재 검증 상태를 확인한다(설치 불필요, 의존성 0 — ADR-009). Windows에서는 `CLAUDE.md`의 개별 명령을 쓴다.
+3. 카카오 실기 실험: `docs/04-verification.md` §B1 순서로 Windows에서 E0~E4를 수행하고 §B3 결과표를 채운다.
+4. 인스타: `docs/03-development-plan.md` I-M0부터.

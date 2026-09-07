@@ -40,6 +40,8 @@ lib/providers.js        프로바이더 네임스페이스·병합·게이팅   
 lib/native-port.js      네이티브 호스트 링크                 ← 〃
 host/                   카카오 호스트                        ← poc/kakao-host 에서 M5에 승격
 tests/                  node·pytest 테스트 + fixtures
+icons/                  확장 아이콘 16·48·128 (I-M1에서 추가, ADR-009)
+package.json .editorconfig  개발 편의(의존성 0) — ADR-009
 poc/kakao-host/         호스트 PoC: buoy_kakao_host/(framing·protocol·host·adapters), experiments/, install/, tests/
 poc/extension-provider/ 확장 측 공용 로직 PoC + tests
 poc/extension-native-echo/  E3·E4용 실험 확장
@@ -74,6 +76,7 @@ docs/  reference/
 ## 자주 쓰는 명령
 
 ```bash
+npm run verify        # 완료 정의의 자동 검사 전부 (아래 3줄 = test + test:host + check). macOS·Linux 전용
 node --test 'poc/extension-provider/tests/*.test.js'                                   # 확장 측 순수 로직
 cd poc/kakao-host && python -m pytest -q tests && python experiments/e3_echo_check.py   # 호스트 + 로컬 왕복
 for f in $(git ls-files '*.js'); do node --check "$f" || exit 1; done                     # 문법
@@ -82,7 +85,7 @@ cd poc/kakao-host && pip install -r requirements-windows.txt && python experimen
 ```
 
 브라우저 로드: `chrome://extensions` → 개발자 모드 → "압축해제된 확장 프로그램 로드". 호스트 등록: `poc/kakao-host/install/register.ps1 -ExtensionId <ID> -Adapter mock|windows`.
-패키징(확장): `mkdir -p dist && zip -r "dist/floating-messenger-$(node -p "require('./manifest.json').version").zip" . -x 'docs/*' 'tests/*' 'poc/*' 'reference/*' 'dist/*' 'node_modules/*' '.git/*' 'CLAUDE.md' 'README.md'`
+패키징(확장): `mkdir -p dist && zip -r "dist/floating-messenger-$(node -p "require('./manifest.json').version").zip" . -x 'docs/*' 'tests/*' 'poc/*' 'reference/*' 'dist/*' 'node_modules/*' '.git/*' 'CLAUDE.md' 'README.md' 'package.json' '.editorconfig' '.gitignore'`
 
 ## 완료 정의 (Definition of Done)
 
