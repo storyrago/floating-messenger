@@ -41,7 +41,7 @@ app/preload-ui.js    UI 창 preload: contextBridge로 post/onMessage만 노출
 app/renderer/panel.* 목록·대화 화면 (창 하나에서 오간다)
 lib/                 순수 로직. normalize.js는 아직 없다
 poc/extension-provider/  프로바이더 병합 로직 + 테스트 (lib/로 승격 예정)
-icons/ docs/ reference/
+icons/ docs/
 ```
 
 ## 절대 지킬 것

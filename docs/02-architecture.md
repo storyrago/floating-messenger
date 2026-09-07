@@ -440,6 +440,10 @@ widget.js는 `event.origin === new URL(chrome.runtime.getURL('')).origin`일 때
 
 ## 부록 A. reference/ · poc/
 
+**2026-09-07:** `reference/`(확장 매니페스트·hook.js 초안)는 삭제됐다. 확장을 쓰지 않으므로
+매니페스트가 필요 없고, hook.js의 역할은 `app/preload-ig.js`가 대신한다(ADR-010).
+`poc/kakao-host`·`poc/extension-native-echo`도 삭제됐다(ADR-011). 둘 다 git 이력에 남아 있다.
+
 - `reference/manifest.json`: 인스타 콘텐츠 스크립트·리소스 선언 초안. M1에서 루트로 복사하고 `nativeMessaging`·`key`는 M5에서 추가.
 - `reference/hook.js`: §7.1 신호를 내는 MAIN world 훅. 소켓 호스트 정규식(`/edge-chat|mqtt/i`)은 M0 결과로 확정.
 - `poc/extension-provider/lib/`: §5 병합 규칙과 §8 링크의 참조 구현(테스트 15개). M5에서 `lib/`로 승격.
