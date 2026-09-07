@@ -1,0 +1,6 @@
+@echo off
+rem Buoy 카카오톡 호스트 실행기. register.ps1이 절대 경로를 채워 host.bat으로 생성한다.
+rem stdout에는 프레임만 나가야 하므로 echo를 끈다. 로그는 %LOCALAPPDATA%\Buoy\kakao-host.log
+set PYTHONPATH=__PROJECT_DIR__
+set PYTHONIOENCODING=utf-8
+"__PYTHON_EXE__" -m buoy_kakao_host --adapter __ADAPTER__ %*

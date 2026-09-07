@@ -1,0 +1,11 @@
+# Windows 어댑터용. 리눅스/맥에서는 설치하지 않아도 mock 어댑터와 테스트는 동작한다.
+pywin32>=306
+# pywinrt (알림 리스너). 설치가 안 되면 README의 "대안" 참고
+winrt-runtime
+winrt-Windows.Foundation
+winrt-Windows.Foundation.Collections
+winrt-Windows.UI.Notifications
+winrt-Windows.UI.Notifications.Management
+winrt-Windows.ApplicationModel
+# E1b 탐색용 (선택)
+pywinauto>=0.6.8

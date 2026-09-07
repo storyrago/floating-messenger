@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Buoy Native Echo (E3)",
+  "version": "0.1.0",
+  "description": "Buoy 카카오 호스트와의 네이티브 메시징 왕복을 검증하는 실험용 확장",
+  "minimum_chrome_version": "116",
+  "permissions": ["nativeMessaging"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Buoy E3: 호스트 왕복 검사 (클릭)" }
+}
