@@ -8,17 +8,17 @@
   /* 글씨 */
   --ink: #F4F3F8;
   --ink-dim: #C3C0CE;
-  --ink-faint: #9693A4;
+  --ink-faint: #ADAABA;
 
   /* 유리 표면.
    * 배경 화면이 무엇이든 글씨가 읽혀야 하므로 어두운 바탕을 깔고 그 위에 층을 나눈다.
    * 완전히 불투명하게 하면 유리가 죽고, 너무 투명하면 밝은 배경에서 글씨가 씻긴다.
    * 아래 값은 밝은 그러데이션 배경에서 본문 대비 4.5:1을 넘기는 선. */
-  --skin-side: rgba(24, 22, 31, 0.62);
-  --skin-chat: rgba(17, 16, 23, 0.70);
-  --skin-raise: rgba(255, 255, 255, 0.10);
-  --skin-hover: rgba(255, 255, 255, 0.07);
-  --line: rgba(255, 255, 255, 0.09);
+  --skin-side: rgba(24, 22, 31, 0.38);
+  --skin-chat: rgba(17, 16, 23, 0.46);
+  --skin-raise: rgba(255, 255, 255, 0.13);
+  --skin-hover: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.10);
 
   /* 강조 (docs/02 §14 그대로) */
   --accent: #5B4FE6;
@@ -42,6 +42,8 @@ html, body {
 body {
   background: transparent;          /* 유리가 비치도록 */
   color: var(--ink);
+  /* 유리가 얇아 배경 무늬가 글자 뒤로 지나간다. 아주 옅은 그림자로 글자 윤곽을 지킨다. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   font: 400 14px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
@@ -61,6 +63,9 @@ body {
   flex-direction: column;
   min-height: 0;
   background: var(--skin-side);
+  /* 배경을 흐리면 얇은 유리로도 글씨가 읽힌다. 맥 vibrancy 위에 겹쳐도 자연스럽다. */
+  backdrop-filter: blur(34px) saturate(1.6);
+  -webkit-backdrop-filter: blur(34px) saturate(1.6);
   border-right: 1px solid var(--line);
 }
 
@@ -253,6 +258,8 @@ body {
   flex-direction: column;
   min-height: 0;
   background: var(--skin-chat);
+  backdrop-filter: blur(34px) saturate(1.6);
+  -webkit-backdrop-filter: blur(34px) saturate(1.6);
 }
 
 .chat-head {
