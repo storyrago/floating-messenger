@@ -28,7 +28,7 @@
 
   --font: Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --side-w: 292px;
-  --head-h: 56px;
+  --head-h: 88px;   /* 신호등이 위에 앉고 그 아래에 제목이 온다 */
   --radius: 18px;
 }
 
@@ -66,24 +66,27 @@ body {
   border-right: 1px solid var(--line);
 }
 
-/* 신호등·캡션 버튼이 이 위에 얹힌다. 여백으로 자리를 비우고, 빈 곳은 창 끌기 영역으로 쓴다. */
+/* 신호등·캡션 버튼은 이 영역 위쪽에 얹힌다. 제목은 그 아래로 내려 목록 글자와 왼쪽 선을 맞춘다. */
 .side-head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
   flex: 0 0 auto;
   height: var(--head-h);
-  padding: 0 10px 0 92px;
+  padding: 0 10px 14px 18px;
   -webkit-app-region: drag;
 }
 
 .side-title {
   flex: 1;
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
+
+.dots { margin-bottom: 5px; }
+.side-head .icon { margin-bottom: -3px; }
 
 .dots { display: flex; gap: 5px; }
 
@@ -153,7 +156,7 @@ body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 8px 10px;
+  padding: 0 10px 10px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,.14) transparent;
 }
@@ -246,7 +249,7 @@ body {
 }
 
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.avatar.lg { width: 34px; height: 34px; font-size: 13px; }
+.avatar.lg { width: 32px; height: 32px; font-size: 13px; }
 
 /* ───────────────────────── 오른쪽 대화 ───────────────────────── */
 
@@ -257,13 +260,14 @@ body {
   background: var(--skin-chat);
 }
 
+/* 왼쪽 제목과 같은 선에 이름이 오도록 아래로 맞춘다. 두 칸의 구분선도 한 줄로 이어진다. */
 .chat-head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   flex: 0 0 auto;
   height: var(--head-h);
-  padding: 0 16px;
+  padding: 0 20px 12px;
   border-bottom: 1px solid var(--line);
   -webkit-app-region: drag;
 }
@@ -273,7 +277,7 @@ body {
 
 .chat-name {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -318,6 +322,7 @@ body {
 }
 
 .msg { width: fit-content; max-width: 74%; margin-bottom: 8px; }  /* 짧은 말은 짧게 */
+.msg.gap { margin-top: 22px; }  /* 같은 날 안에서 시간이 벌어졌을 때 */
 .msg.me { margin-left: auto; }
 
 .sender {
@@ -343,12 +348,12 @@ body {
 }
 
 .stamp {
-  margin: 2px 0 0 12px;
+  margin: 2px 0 12px 12px;
   color: var(--ink-faint);
   font-size: 11px;
 }
 
-.stamp.me { margin: 2px 12px 0 0; text-align: right; }
+.stamp.me { margin: 2px 12px 12px 0; text-align: right; }
 
 /* 컴포저 — 전송은 다음 단계라 지금은 꺼 둔다 */
 .composer {

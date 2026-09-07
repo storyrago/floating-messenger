@@ -57,11 +57,22 @@
 
   // ── 시간 ──
   const hm = new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-  const full = new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  const dayFmt = new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+
+  const dayKey = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
   function isToday(d) {
-    const n = new Date();
-    return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+    return dayKey(d) === dayKey(new Date());
+  }
+
+  /** 구분선 문구. 시각은 말 묶음마다 따로 붙으므로 여기서는 날짜만 말한다. */
+  function dayLabel(ts) {
+    const d = new Date(ts);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (isToday(d)) return '오늘';
+    if (dayKey(d) === dayKey(yesterday)) return '어제';
+    return dayFmt.format(d);
   }
 
   function when(ts) {
@@ -311,27 +322,43 @@
 
     // prevTs=0으로 시작해 첫 항목에도 구분선이 붙는다. 오래된 대화를 열었을 때
     // 맨 위에 날짜가 없으면 언제 이야기인지 알 수 없다.
+    // 같은 사람이 연달아 말한 묶음마다 끝에 시각을 한 번 붙인다.
+    // 모든 말풍선에 붙이면 시끄럽고, 대화 끝에만 붙이면 언제 이야기인지 알 수 없다.
+    // 구분선은 날짜가 바뀔 때만 그린다. 같은 날 안에서 시간이 벌어진 것은 여백으로 보인다.
+    // docs/01 FR-03은 "30분 이상이면 날짜·시간 구분선"이라 했지만, 말 묶음마다 시각이
+    // 붙는 지금 구성에서는 같은 날 구분선이 "오늘"만 반복해 나와 정보가 되지 않는다.
+    const items = t.items || [];
     let prevTs = 0;
-    let lastFromMe = null;
-    for (const item of t.items || []) {
-      if (item.ts - prevTs > GAP_MS) {
-        el.convo.appendChild(h('p', { class: 'sep', text: full.format(new Date(item.ts)) }));
-        lastFromMe = null;
+    let prevDay = null;
+    let lastSender = null;
+    items.forEach((item, i) => {
+      const day = dayKey(new Date(item.ts));
+      const dayChanged = day !== prevDay;
+      const bigGap = item.ts - prevTs > GAP_MS;
+      if (dayChanged) {
+        el.convo.appendChild(h('p', { class: 'sep', text: dayLabel(item.ts) }));
+        lastSender = null;
       }
+      prevDay = day;
       prevTs = item.ts;
 
-      const msg = h('div', { class: 'msg' + (item.fromMe ? ' me' : '') });
-      if (t.isGroup && !item.fromMe && item.userId !== lastFromMe) {
+      const sender = item.fromMe ? 'me' : item.userId;
+      const msg = h('div', {
+        class: 'msg' + (item.fromMe ? ' me' : '') + (bigGap && !dayChanged ? ' gap' : ''),
+      });
+      if (t.isGroup && !item.fromMe && sender !== lastSender) {
         const u = (t.users || []).find((x) => x.id === item.userId);
         msg.appendChild(h('p', { class: 'sender', text: (u && u.username) || item.userId || '' }));
       }
       msg.appendChild(h('p', { class: 'text', text: item.text || '' }));
       el.convo.appendChild(msg);
-      lastFromMe = item.userId;
-    }
 
-    const last = (t.items || [])[t.items.length - 1];
-    if (last) el.convo.appendChild(h('p', { class: 'stamp' + (last.fromMe ? ' me' : ''), text: hm.format(new Date(last.ts)) }));
+      const next = items[i + 1];
+      const runEnds = !next || (next.fromMe ? 'me' : next.userId) !== sender || next.ts - item.ts > GAP_MS;
+      if (runEnds) el.convo.appendChild(h('p', { class: 'stamp' + (item.fromMe ? ' me' : ''), text: hm.format(new Date(item.ts)) }));
+
+      lastSender = sender;
+    });
 
     if (atBottom) el.convo.scrollTop = el.convo.scrollHeight;
   }
