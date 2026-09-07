@@ -118,7 +118,7 @@ function createUI() {
     ...(mac ? { trafficLightPosition: { x: 18, y: 18 } } : {}),
     ...(mac
       // 맥: 창 뒤 배경이 비치는 유리 재질. 색을 칠하지 않아야 비친다.
-      ? { vibrancy: 'sidebar', visualEffectState: 'active', backgroundColor: '#00000000' }
+      ? { vibrancy: 'hud', visualEffectState: 'active', backgroundColor: '#00000000' }
       // 윈도우 11: 같은 역할을 하는 재질. 지원하지 않는 버전에서는 무시되고 아래 색이 쓰인다.
       : { backgroundMaterial: 'acrylic', backgroundColor: '#17161C',
           titleBarOverlay: { color: '#00000000', symbolColor: '#ECECF1', height: 44 } }),

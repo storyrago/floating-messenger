@@ -11,11 +11,11 @@
   --ink-faint: #ADAABA;
 
   /* 유리 표면.
-   * 배경 화면이 무엇이든 글씨가 읽혀야 하므로 어두운 바탕을 깔고 그 위에 층을 나눈다.
-   * 완전히 불투명하게 하면 유리가 죽고, 너무 투명하면 밝은 배경에서 글씨가 씻긴다.
-   * 아래 값은 밝은 그러데이션 배경에서 본문 대비 4.5:1을 넘기는 선. */
-  --skin-side: rgba(24, 22, 31, 0.38);
-  --skin-chat: rgba(17, 16, 23, 0.46);
+   * 유리는 창 재질(macOS vibrancy / Windows acrylic)이 만든다. 여기서 색을 덮으면 그 재질이
+   * 가려져 불투명해진다. 그래서 왼쪽은 아무것도 칠하지 않고 재질을 그대로 쓰고,
+   * 오른쪽만 두 칸을 구분할 만큼 아주 옅게 눌러 준다. */
+  --skin-side: transparent;
+  --skin-chat: rgba(0, 0, 0, 0.10);
   --skin-raise: rgba(255, 255, 255, 0.13);
   --skin-hover: rgba(255, 255, 255, 0.08);
   --line: rgba(255, 255, 255, 0.10);
@@ -63,9 +63,6 @@ body {
   flex-direction: column;
   min-height: 0;
   background: var(--skin-side);
-  /* 배경을 흐리면 얇은 유리로도 글씨가 읽힌다. 맥 vibrancy 위에 겹쳐도 자연스럽다. */
-  backdrop-filter: blur(34px) saturate(1.6);
-  -webkit-backdrop-filter: blur(34px) saturate(1.6);
   border-right: 1px solid var(--line);
 }
 
@@ -258,8 +255,6 @@ body {
   flex-direction: column;
   min-height: 0;
   background: var(--skin-chat);
-  backdrop-filter: blur(34px) saturate(1.6);
-  -webkit-backdrop-filter: blur(34px) saturate(1.6);
 }
 
 .chat-head {
