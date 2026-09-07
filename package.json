@@ -8,7 +8,8 @@
     "test": "node --test 'poc/extension-provider/tests/*.test.js' 'tests/*.test.js'",
     "check": "for f in $(git ls-files '*.js' ':!:node_modules/*'); do node --check \"$f\" || exit 1; done",
     "verify": "npm run test && npm run check",
-    "send-test": "BUOY_SEND_TEST=1 electron ."
+    "send-test": "BUOY_SEND_TEST=1 electron .",
+    "ui": "BUOY_NO_ENGINE=1 electron ."
   },
   "devDependencies": {
     "electron": "^44.2.0"

@@ -397,6 +397,13 @@ ipcMain.on('ui:post', (_e, msg) => {
 // ── 수명주기 ─────────────────────────────────────────────────────────────────
 app.whenReady().then(() => {
   createUI();
+  // UI만 손볼 때는 엔진을 띄우지 않는다. 인스타에 요청이 한 건도 나가지 않아
+  // 앱을 몇 번을 다시 띄워도 요청 제한에 영향을 주지 않는다. `npm run ui` 로 켠다.
+  if (process.env.BUOY_NO_ENGINE === '1') {
+    console.log('[buoy] 엔진 없음 (BUOY_NO_ENGINE=1) — 인스타에 접속하지 않습니다');
+    setStatus('instagram', 'disconnected', 'UI 작업 모드');
+    return;
+  }
   createEngine();
   app.on('activate', () => { if (!ui) createUI(); });
 });
