@@ -68,6 +68,12 @@
 완료 기준: 확장 로드 후 핀 탭이 자동 생성되고, 다른 기기에서 보낸 메시지가 SW 콘솔에 1초 내 `INBOX`로 찍히며 `unread`가 바뀐다. 핀 탭을 닫으면 3초 내 재생성(팝업 열린 상태). `node --test` 통과. 검증: docs/04 §A2, §A3.
 
 ### I-M2. 위젯 + 패널 읽기 전용 (1~2일)
+**순서 변경(2026-09-07, 사용자 결정):** I-M2를 I-M0·I-M1보다 먼저 진행한다. 위젯·패널은 인스타 엔드포인트를
+전혀 참조하지 않으므로 I-M0 결과에 의존하지 않는다. 대신 `background.js`는 이 단계에서 포트·배지·툴바만
+구현하고 데이터는 내장 mock을 쓴다(`MOCK` 상수). I-M1에서 `InstagramProvider`가 그 자리를 대체한다.
+`manifest.json`의 인스타 콘텐츠 스크립트 3줄(hook.js, lib/normalize.js, ig-bridge.js)도 I-M1에서 추가한다.
+파일이 없으면 확장이 로드되지 않기 때문이다. 컴포저는 I-M3 범위 그대로 두었다.
+
 작업
 - `widget.js`: 호스트 div → closed Shadow DOM, `adoptedStyleSheets`, 버블·배지·컨테이너, iframe lazy 로드, 토글·Esc, `TOGGLE` 응답, `CLOSE` 수신(origin 검증), `storage.onChanged` 배지.
 - `panel.html/css/js`: 포트 연결·재연결, `STATE/THREADS/STATUS` 처리, 목록(필터 칩은 켜진 프로바이더가 1개면 숨김)·대화 렌더(병합 규칙), 상태 점·배너·[인스타그램 열기], 뒤로/새로고침/닫기, standalone 모드(`window.close`). `lib/providers.js`를 패널에서도 로드해 `mergeThreads`·`filterThreads`를 그대로 쓴다.
