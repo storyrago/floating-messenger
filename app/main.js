@@ -92,7 +92,7 @@ function createEngine() {
     show: false,               // 로그인이 필요할 때만 보여 준다
     width: 1000,
     height: 800,
-    title: 'Instagram (buoy engine)',
+    title: '인스타그램 로그인',
     webPreferences: {
       preload: path.join(__dirname, 'preload-ig.js'),
       partition: IG_PARTITION,
@@ -123,7 +123,11 @@ function createEngine() {
   engine.loadURL(IG_URL);
   // 사용자가 로그인 창을 닫아도 앱은 살아 있어야 한다. 숨기기만 한다.
   engine.on('close', (e) => {
-    if (!app.isQuitting) { e.preventDefault(); engine.hide(); }
+    if (app.isQuitting) return;
+    e.preventDefault();
+    engine.hide();
+    loginShown = false;
+    loginDismissed = true; // 배너의 [인스타그램 열기]로는 언제든 다시 열 수 있다
   });
   // 인스타 밖 링크는 기본 브라우저로
   engine.webContents.setWindowOpenHandler(({ url }) => {
@@ -175,8 +179,32 @@ async function probeInbox() {
       viewer: Object.keys(res.body.viewer || {}),
     });
     setStatus('instagram', 'connected');
+    hideLogin();
   } catch (e) {
     setStatus('instagram', 'error', String(e && e.message));
+  }
+}
+
+// ── 로그인 창 ────────────────────────────────────────────────────────────────
+// 로그인이 필요하면 자동으로 띄우고, 로그인이 끝나면 도로 숨긴다.
+// 사용자가 직접 닫았으면 다시 띄우지 않는다(reload마다 창이 튀어나오면 성가시다).
+let loginShown = false;
+let loginDismissed = false;
+
+function showLogin(reason) {
+  if (!engine || engine.isDestroyed() || loginDismissed || loginShown) return;
+  loginShown = true;
+  console.log('[buoy] showing login window:', reason);
+  engine.show();
+  engine.focus();
+}
+
+function hideLogin() {
+  loginShown = false;
+  loginDismissed = false;
+  if (engine && !engine.isDestroyed() && engine.isVisible()) {
+    console.log('[buoy] login done, hiding window');
+    engine.hide();
   }
 }
 
@@ -230,7 +258,11 @@ ipcMain.on('ig:ready', (_e, info) => {
   // 요청 제한 중에는 빈 페이지가 와서 쿠키가 없다. 그때의 loggedIn=false는 로그아웃이 아니라
   // 제한의 부산물이므로 상태를 덮지 않는다. 덮으면 "로그인 필요" 배너를 잘못 띄우게 된다.
   if (MOCK.providers.instagram.status === 'rate_limited') return;
-  if (!info.loggedIn) { setStatus('instagram', 'logged_out'); return; }
+  if (!info.loggedIn) {
+    setStatus('instagram', 'logged_out');
+    showLogin('not logged in');
+    return;
+  }
   probeInbox();
 });
 
@@ -266,7 +298,9 @@ ipcMain.on('ui:post', (_e, msg) => {
       break;
     }
     case 'OPEN_INSTAGRAM':
-      if (engine && !engine.isDestroyed()) { engine.show(); engine.focus(); }
+      loginDismissed = false;
+      loginShown = false;
+      showLogin('user asked');
       break;
     case 'SET_OPEN_THREAD':
     case 'OPEN_HELP':
