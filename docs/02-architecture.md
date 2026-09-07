@@ -334,7 +334,10 @@ widget.js는 `event.origin === new URL(chrome.runtime.getURL('')).origin`일 때
 | `thread.last_activity_at` | `Thread.lastActivity` | µs → ms |
 | `viewer.pk` / `thread.viewer_id` | `Inbox.viewer.id` / `fromMe` 판정 | |
 
-응답 오류 판정(`igFetch`): `res.redirected && /\/accounts\/login/.test(res.url)` 또는 401/403 또는 JSON 아님 → `logged_out`; 429 → `rate_limited`; 그 외 !ok → `http_<status>`.
+응답 오류 판정(`igFetch`) — **순서가 중요하다.** 429가 `text/html`로 오는 것을 2026-09-07에 확인했으므로,
+"JSON 아님" 검사를 먼저 하면 요청 제한을 로그아웃으로 오인한다.
+1) 429 → `rate_limited` 2) 401/403 또는 로그인 페이지 리다이렉트 → `logged_out`
+3) JSON 아님 → `logged_out` 4) 그 외 !ok → `http_<status>`.
 
 **웹앱과 우리의 경로가 다르다(2026-09-07 관찰).** 현재 instagram.com 웹앱은 DM 읽기를 `graphql`
 요청으로, 전송을 웹소켓으로 한다. 개발자 도구 본문 검색에서 보낸 문자열이 어떤 HTTP 요청에도
