@@ -112,6 +112,24 @@ function createEngine() {
       sandbox: false,
     },
   });
+  const wc = engine.webContents;
+
+  // 메인 프레임 응답 감시. 429가 빈 본문으로 오기 때문에(2026-09-07 확인) 상태 코드를 보지 않으면
+  // 흰 화면만 남는다. docs/02 §9.1 · docs/01 FR-05
+  wc.session.webRequest.onHeadersReceived({ urls: ['https://*.instagram.com/*'] }, (d, cb) => {
+    if (d.resourceType === 'mainFrame') onEngineResponse(d.statusCode, d.url);
+    cb({});
+  });
+  wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
+    if (isMainFrame) {
+      console.log('[buoy] engine load failed', code, desc);
+      setStatus('instagram', 'disconnected', desc);
+    }
+  });
+  wc.on('render-process-gone', (_e, d) => setStatus('instagram', 'error', d && d.reason));
+
+  // 신원 문자열(User-Agent)은 Electron 기본값 그대로 둔다. 흰 화면의 원인이 429였음이
+  // 확인됐으므로 UA를 손댈 근거가 없다. 제한이 풀린 뒤에도 페이지가 안 그려지면 그때 다시 본다.
   engine.loadURL(IG_URL);
   // 사용자가 로그인 창을 닫아도 앱은 살아 있어야 한다. 숨기기만 한다.
   engine.on('close', (e) => {
@@ -172,6 +190,31 @@ async function probeInbox() {
   }
 }
 
+// ── 엔진 응답 판정과 백오프 ────────────────────────────────────────────────────
+// docs/02 §11: 429 쿨다운 30초, 연속되면 2배씩 최대 5분, 성공하면 초기화.
+const COOLDOWN_MIN_MS = 30_000;
+const COOLDOWN_MAX_MS = 5 * 60_000;
+let cooldownMs = COOLDOWN_MIN_MS;
+let cooldownTimer = null;
+
+function onEngineResponse(status, url) {
+  if (status === 429) {
+    setStatus('instagram', 'rate_limited', `요청 제한 — ${Math.round(cooldownMs / 1000)}초 뒤 다시 시도해요`);
+    console.log('[buoy] engine 429, retry in %ds', Math.round(cooldownMs / 1000));
+    clearTimeout(cooldownTimer);
+    cooldownTimer = setTimeout(() => {
+      if (engine && !engine.isDestroyed()) engine.webContents.loadURL(IG_URL);
+    }, cooldownMs);
+    cooldownMs = Math.min(cooldownMs * 2, COOLDOWN_MAX_MS);
+    return;
+  }
+  // 2xx만 성공이다. 302는 로그인 페이지로 보내는 것이라 성공이 아니고,
+  // 이걸 초기화로 치면 백오프가 30초에 붙박이가 된다(2026-09-07 검증에서 확인).
+  if (status >= 200 && status < 300) cooldownMs = COOLDOWN_MIN_MS;
+  if (status === 401 || status === 403) setStatus('instagram', 'logged_out');
+  console.log('[buoy] engine response', status, url.split('?')[0]);
+}
+
 // ── 엔진 이벤트 ───────────────────────────────────────────────────────────────
 let wsTimer = null;
 const socketsSeen = new Set();
@@ -194,6 +237,9 @@ ipcMain.on('ig:ws-frame', (_e, info) => {
 
 ipcMain.on('ig:ready', (_e, info) => {
   console.log('[buoy] engine ready loggedIn=%s', info.loggedIn);
+  // 요청 제한 중에는 빈 페이지가 와서 쿠키가 없다. 그때의 loggedIn=false는 로그아웃이 아니라
+  // 제한의 부산물이므로 상태를 덮지 않는다. 덮으면 "로그인 필요" 배너를 잘못 띄우게 된다.
+  if (MOCK.providers.instagram.status === 'rate_limited') return;
   if (!info.loggedIn) { setStatus('instagram', 'logged_out'); return; }
   probeInbox();
 });
