@@ -1,23 +1,19 @@
-// panel.js — 통합 목록·대화·상태 화면. iframe(위젯)과 팝업 창(?standalone=1)에서 같은 코드로 돈다.
-// 네트워크와 storage에 직접 닿지 않는다. background와 포트 하나로만 이야기한다.
-// docs/01 FR-02·03·05 · docs/02 §7.4, §7.6, §14
+// panel.js — 통합 목록·대화·상태 화면. 앱 창 하나 안에서 목록과 대화를 오간다(ADR-010).
+// 네트워크에 직접 닿지 않는다. preload가 열어 준 window.buoy 로만 메인 프로세스와 이야기한다.
+// 메시지 모양은 확장 시절의 포트 규약을 그대로 쓴다. docs/01 FR-02·03·05 · docs/02 §7.4, §14
 //
-// 컴포저(전송)는 I-M3 범위다. 이 단계는 읽기 전용이다.
+// 컴포저(전송)는 다음 단계다. 지금은 읽기 전용이다.
 (() => {
   'use strict';
 
   const REQ_TIMEOUT_MS = 15000;  // docs/02 §11
-  const RECONNECT_MS = 800;
   const GAP_MS = 30 * 60 * 1000; // 30분 이상이면 구분선 (FR-03)
-
-  const standalone = new URLSearchParams(location.search).get('standalone') === '1';
 
   const el = {
     back: document.getElementById('back'),
     title: document.getElementById('title'),
     dots: document.getElementById('dots'),
     refresh: document.getElementById('refresh'),
-    close: document.getElementById('close'),
     banners: document.getElementById('banners'),
     chips: document.getElementById('chips'),
     list: document.getElementById('list'),
@@ -28,7 +24,6 @@
   const state = { providers: {}, threads: [], unread: { total: 0, byProvider: {} } };
   let filter = 'all';
   let openThreadId = null;
-  let port = null;
   let reqId = 0;
   const pending = new Map();
 
@@ -72,26 +67,14 @@
     return sameDay ? hm.format(d) : md.format(d);
   }
 
-  // ── 포트 ──
+  // ── 메인 프로세스 연결 (preload-ui.js가 노출) ──
   function connect() {
-    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.connect) return;
-    try {
-      port = chrome.runtime.connect({ name: 'panel' });
-    } catch {
-      setTimeout(connect, RECONNECT_MS);
-      return;
-    }
-    port.onMessage.addListener(onMessage);
-    port.onDisconnect.addListener(() => {
-      port = null;
-      for (const [, p] of pending) p.reject(new Error('disconnected'));
-      pending.clear();
-      setTimeout(connect, RECONNECT_MS);
-    });
+    if (!globalThis.buoy) return; // 앱 밖(브라우저 미리보기)에서 열렸을 때
+    globalThis.buoy.onMessage(onMessage);
   }
 
   function post(msg) {
-    try { if (port) port.postMessage(msg); } catch { /* 재연결이 처리한다 */ }
+    try { if (globalThis.buoy) globalThis.buoy.post(msg); } catch { /* 창이 닫히는 중 */ }
   }
 
   function request(msg) {
@@ -323,16 +306,8 @@
     post({ type: 'REFRESH' });
   });
 
-  el.close.addEventListener('click', close);
-
-  function close() {
-    if (standalone) { window.close(); return; }
-    try { parent.postMessage({ __buoy: true, type: 'CLOSE' }, '*'); } catch { /* 무시 */ }
-  }
-
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    if (openThreadId) backToList(); else close();
+    if (e.key === 'Escape' && openThreadId) backToList();
   });
 
   // 패널 제목은 목록일 때 고정
@@ -343,6 +318,6 @@
   connect();
   renderAll();
 
-  // 확장 밖(파일·미리보기)에서 열렸을 때만 열어 두는 개발용 진입점. 확장에서는 만들어지지 않는다.
-  if (typeof chrome === 'undefined' || !chrome.runtime) globalThis.__buoyDev = { onMessage };
+  // 앱 밖(브라우저 미리보기)에서 열렸을 때만 열어 두는 개발용 진입점. 앱에서는 만들어지지 않는다.
+  if (!globalThis.buoy) globalThis.__buoyDev = { onMessage };
 })();
